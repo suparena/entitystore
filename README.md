@@ -1,1 +1,1 @@
-# entitystore
+Entity Store Library
