@@ -75,7 +75,7 @@ func init() {
 }
 `
 
-func main() {
+func Main() {
 	// Command-line flags: input OpenAPI spec and output file.
 	inputFile := flag.String("in", "openapi.yaml", "Path to the OpenAPI spec YAML file")
 	outputFile := flag.String("outputdata", "indexmap_type_registry_registration.go", "Path for the generated registration code")
@@ -123,4 +123,8 @@ func main() {
 	}
 
 	fmt.Printf("Generated %s successfully.\n", *outputFile)
+}
+
+func main() {
+	Main()
 }
