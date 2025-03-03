@@ -1,4 +1,4 @@
-package main
+package processor
 
 import (
 	"flag"
@@ -123,8 +123,4 @@ func Main() {
 	}
 
 	fmt.Printf("Generated %s successfully.\n", *outputFile)
-}
-
-func main() {
-	Main()
 }

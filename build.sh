@@ -1,3 +1,3 @@
 #!/bin/bash
 
-go build -o indexmap-pps ./cmd/postprocess/indexmap
+go build -o indexmap-pps ./cmd/indexmap
