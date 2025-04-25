@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/suparena/entitystore/registry"
+	"reflect"
 	"regexp"
 	"strings"
 
@@ -155,6 +156,9 @@ func (d *DynamodbDataStore[T]) GetOne(ctx context.Context, key string) (*T, erro
 		return nil, nil
 	}
 
+	// Remove the EntityType attribute.
+	delete(out.Item, "EntityType")
+
 	// Create a new instance of T and unmarshal the item into it.
 	result := new(T)
 	if err := attributevalue.UnmarshalMap(out.Item, result); err != nil {
@@ -195,6 +199,16 @@ func (d *DynamodbDataStore[T]) queryOne(ctx context.Context, expanded map[string
 	return out.Items, nil
 }
 
+// getEntityType uses reflection to determine the object's type name.
+// If a pointer is passed in, it returns the underlying type's name.
+func getEntityType(obj interface{}) string {
+	t := reflect.TypeOf(obj)
+	if t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+	return t.Name()
+}
+
 // Put stores the given 'entity' in the underlying data store using macros in 'indexMap'
 // to populate partition/sort keys (and possibly GSIs).
 func (d *DynamodbDataStore[T]) Put(ctx context.Context, entity T) error {
@@ -207,6 +221,9 @@ func (d *DynamodbDataStore[T]) Put(ctx context.Context, entity T) error {
 	if err != nil {
 		return fmt.Errorf("failed to marshal entity: %w", err)
 	}
+
+	entityType := getEntityType(entity)
+	av["EntityType"] = &types.AttributeValueMemberS{Value: entityType}
 
 	// Expand macros using the entity itself (assuming the entity has ID, etc.)
 	expanded, err := expandMacros(indexMap, entity)

@@ -55,6 +55,7 @@ func (d *DynamodbDataStore[T]) Stream(ctx context.Context, params *storagemodels
 						errCh <- fmt.Errorf("failed to unmarshal EntityType: %w", err)
 						return
 					}
+					delete(item, "EntityType")
 				} else {
 					errCh <- fmt.Errorf("missing EntityType attribute in item")
 					return
