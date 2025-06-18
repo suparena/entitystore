@@ -6,6 +6,7 @@ package entitystore
 
 import (
 	"fmt"
+	"sync"
 )
 
 // Storage is a higher-level interface that manages a collection of DataStore instances.
@@ -18,8 +19,9 @@ type Storage interface {
 	GetDataStore(key string) (any, error)
 }
 
-// storageManager is a simple implementation of the Storage interface.
+// storageManager is a thread-safe implementation of the Storage interface.
 type storageManager struct {
+	mu     sync.RWMutex
 	stores map[string]any
 }
 
@@ -32,6 +34,9 @@ func NewStorageManager() Storage {
 
 // RegisterDataStore stores the provided DataStore under the given key.
 func (sm *storageManager) RegisterDataStore(key string, ds any) error {
+	sm.mu.Lock()
+	defer sm.mu.Unlock()
+	
 	if _, exists := sm.stores[key]; exists {
 		return fmt.Errorf("datastore with key %q already registered", key)
 	}
@@ -41,6 +46,9 @@ func (sm *storageManager) RegisterDataStore(key string, ds any) error {
 
 // GetDataStore retrieves the DataStore associated with the given key.
 func (sm *storageManager) GetDataStore(key string) (any, error) {
+	sm.mu.RLock()
+	defer sm.mu.RUnlock()
+	
 	ds, exists := sm.stores[key]
 	if !exists {
 		return nil, fmt.Errorf("datastore with key %q not found", key)

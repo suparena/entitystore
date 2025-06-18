@@ -1,1 +1,141 @@
-Entity Store Library
+# EntityStore
+
+A sophisticated Go library for type-safe, annotation-driven data persistence with support for multiple storage backends.
+
+## Features
+
+- **Type-Safe Operations**: Generic interfaces with compile-time type checking
+- **Annotation-Driven**: OpenAPI vendor extensions drive code generation
+- **Multiple Backends**: DynamoDB (primary), Redis, with more planned
+- **Enhanced Streaming**: Efficient processing of large datasets with configurable options
+- **Semantic Error Types**: Clear error handling with custom error types
+- **Single Table Design**: Optimized for DynamoDB best practices
+- **Code Generation**: Automatic type registration from OpenAPI specs
+
+## Installation
+
+```bash
+go get github.com/suparena/entitystore
+```
+
+## Quick Start
+
+### 1. Define Your Entity
+
+```go
+type User struct {
+    ID        string    `json:"id"`
+    Email     string    `json:"email"`
+    Name      string    `json:"name"`
+    CreatedAt time.Time `json:"createdAt"`
+}
+```
+
+### 2. Register with OpenAPI Annotations
+
+```yaml
+User:
+  type: object
+  x-dynamodb-indexmap:
+    PK: "USER#{ID}"
+    SK: "USER#{ID}"
+    GSI1PK: "EMAIL#{Email}"
+    GSI1SK: "USER"
+```
+
+### 3. Use the DataStore
+
+```go
+// Create datastore
+store, err := ddb.NewDynamodbDataStore[User](
+    awsAccessKey, awsSecretKey, region, tableName,
+)
+
+// Store entity
+user := User{ID: "123", Email: "user@example.com", Name: "John"}
+err = store.Put(ctx, user)
+
+// Retrieve entity
+retrieved, err := store.GetOne(ctx, "123")
+if errors.IsNotFound(err) {
+    // Handle not found
+}
+
+// Stream large results
+params := &storagemodels.QueryParams{
+    TableName: tableName,
+    KeyConditionExpression: "PK = :pk",
+    ExpressionAttributeValues: map[string]types.AttributeValue{
+        ":pk": &types.AttributeValueMemberS{Value: "USER#123"},
+    },
+}
+
+for result := range store.Stream(ctx, params) {
+    if result.Error != nil {
+        log.Printf("Error: %v", result.Error)
+        continue
+    }
+    process(result.Item)
+}
+```
+
+## Recent Improvements
+
+### Enhanced Streaming API
+- Single-channel design for simpler usage
+- Configurable buffering, retries, and progress tracking
+- Built-in error recovery and retry logic
+- Per-item metadata for debugging
+
+### Better Error Handling
+- Semantic error types (`NotFound`, `AlreadyExists`, `ValidationError`, etc.)
+- Helper functions for error checking
+- Consistent error wrapping with context
+
+### Type-Safe Storage with Generics
+- New `MultiTypeStorage` for type-safe datastore management
+- No more type assertions when retrieving datastores
+- Compile-time type checking
+- [Migration Guide](docs/MIGRATION_GUIDE.md) available
+
+### Testing Support
+- Comprehensive mock implementation in `datastore/mock`
+- Configurable error injection
+- Thread-safe test fixtures
+- Helper methods for test setup
+
+### Thread Safety
+- All storage managers use proper mutex protection
+- Safe for concurrent use
+
+### Consolidated APIs
+- Unified `QueryParams` for both regular queries and streaming
+- Cleaner, more consistent interfaces
+
+## Documentation
+
+- [User Guide](docs/USER_GUIDE.md) - Complete usage guide with examples
+- [System Design](docs/SYSTEM_DESIGN.md) - Architecture and design patterns
+- [Quick Reference](docs/entitystore-quick-reference.md) - Common operations cheat sheet
+- [Design Documentation](docs/entitystore-design.md) - Comprehensive design patterns
+
+## Building
+
+```bash
+# Build the project
+go build ./...
+
+# Run tests
+go test ./...
+
+# Build code generator
+./build.sh
+```
+
+## Contributing
+
+We welcome contributions! Please see our contributing guidelines for details.
+
+## License
+
+Copyright © 2025 Suparena Software Inc. All rights reserved.

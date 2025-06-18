@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/suparena/entitystore/registry"
+	eserrors "github.com/suparena/entitystore/errors"
 	"reflect"
 	"regexp"
 	"strings"
@@ -152,8 +153,10 @@ func (d *DynamodbDataStore[T]) GetOne(ctx context.Context, key string) (*T, erro
 		return nil, fmt.Errorf("GetItem error: %w", err)
 	}
 	if out.Item == nil {
-		// Not found: return nil, nil
-		return nil, nil
+		// Not found: return error
+		var t T
+		typeName := reflect.TypeOf(t).Name()
+		return nil, eserrors.NewNotFoundError(typeName, key)
 	}
 
 	// Remove the EntityType attribute.
@@ -397,7 +400,7 @@ func (d *DynamodbDataStore[T]) UpdateWithCondition(ctx context.Context, keyInput
 		// If the condition fails, DynamoDB returns a ConditionalCheckFailedException
 		var cfe *types.ConditionalCheckFailedException
 		if errors.As(err, &cfe) {
-			return fmt.Errorf("condition failed: %w", err)
+			return eserrors.NewConditionFailedError("update", condition)
 		}
 		// Other possible errors: ProvisionedThroughputExceeded, etc.
 		return fmt.Errorf("UpdateWithCondition failed: %w", err)

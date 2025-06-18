@@ -18,7 +18,10 @@ type DataStore[T any] interface {
 
 	Query(ctx context.Context, params *storagemodels.QueryParams) ([]interface{}, error)
 
-	Stream(ctx context.Context, params *storagemodels.StreamQueryParams) (<-chan storagemodels.StreamItem, <-chan error)
+	// Stream returns a channel of StreamResult[T] for processing large result sets
+	// The channel is closed when streaming completes or an error occurs
+	// Use StreamOptions to configure buffering, retries, and progress tracking
+	Stream(ctx context.Context, params *storagemodels.QueryParams, opts ...storagemodels.StreamOption) <-chan storagemodels.StreamResult[T]
 
 	Delete(ctx context.Context, key string) error
 }
