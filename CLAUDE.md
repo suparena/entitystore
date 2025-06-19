@@ -149,15 +149,30 @@ retrieved, _ := userStore.GetOne(ctx, "123")
 - **Mock Implementation**: Comprehensive mock in `datastore/mock` for testing
 - **Migration Support**: Backward compatible with migration guide
 
+### Phase 3: GSI Query Optimization
+- **GSI Query Builder**: Fluent API for building complex GSI queries
+- **Convenience Methods**: `QueryByGSI1PK`, `QueryByGSI1PKAndSKPrefix` for common patterns
+- **Advanced Filtering**: Support for sort key ranges, prefix queries, and filter expressions
+- **Streaming Support**: GSI queries can return results as streams
+
+### Phase 4: Time-Based Query Patterns
+- **TimeRangeQueryBuilder**: Specialized builder for time-based queries
+- **Time Convenience Methods**: `InLastHours`, `Today`, `ThisWeek`, `ThisMonth`, etc.
+- **Sort Order Control**: `Latest()` and `Oldest()` for controlling result order
+- **Time Window Iterator**: Process large date ranges in configurable chunks
+- **ScanIndexForward Support**: Added to QueryParams for sort order control
+
 ## Documentation
 
 Comprehensive documentation available in `/docs/`:
 - `entitystore-design.md`: Full architecture and design patterns (745 lines)
 - `entitystore-guide.md`: Implementation guide and workflow (353 lines)
-- `entitystore-quick-reference.md`: Quick reference and examples (419 lines)
+- `entitystore-quick-reference.md`: Quick reference and examples (updated with GSI and time-based query examples)
 - `SYSTEM_DESIGN.md`: Technical system design with streaming patterns
 - `USER_GUIDE.md`: Practical usage guide with error handling examples
 - `MIGRATION_GUIDE.md`: Guide for migrating to type-safe storage
+- `GSI_OPTIMIZATION_GUIDE.md`: Comprehensive guide for optimizing GSI queries with time-based patterns
+- `ADVANCED_QUERY_PATTERNS.md`: Roadmap for future query enhancements
 - `README.md`: Project overview and quick start
 
 ## Package Structure
@@ -166,3 +181,5 @@ Comprehensive documentation available in `/docs/`:
 - `/datastore/mock`: Mock implementation for testing
 - `/generic_storage.go`: Type-safe storage implementation
 - `/datastore/ddb/stream.go`: Enhanced streaming implementation
+- `/datastore/ddb/gsi_query.go`: GSI query builder with fluent API
+- `/datastore/ddb/time_query.go`: Time-based query builder and helpers

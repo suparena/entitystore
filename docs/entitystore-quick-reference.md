@@ -230,12 +230,71 @@ params := &QueryParams{
 ### Query with GSI
 
 ```go
+// Basic GSI query
 params := &QueryParams{
     IndexName: "GSI1",
     KeyCondition: "GSI1PK = :pk",
     ExpressionAttributeValues: map[string]types.AttributeValue{
         ":pk": &types.AttributeValueMemberS{Value: "TEAM#456"},
     },
+}
+
+// Using GSI Query Builder (New!)
+results, err := store.QueryByGSI1PK(ctx, "user@example.com")
+
+// GSI query with sort key prefix
+results, err := store.QueryByGSI1PKAndSKPrefix(ctx, "user@example.com", "STATUS#active")
+
+// Complex GSI query with builder
+results, err := store.QueryGSI().
+    WithPartitionKey("user@example.com").
+    WithSortKeyPrefix("STATUS#active").
+    WithFilter("Country = :country", filterValues).
+    WithLimit(100).
+    Execute(ctx)
+
+// GSI query with sort key range
+results, err := store.QueryGSI().
+    WithPartitionKey("user@example.com").
+    WithSortKeyBetween("DATE#2024-01-01", "DATE#2024-12-31").
+    Execute(ctx)
+
+// Stream GSI query results
+resultCh := store.QueryGSI().
+    WithPartitionKey("user@example.com").
+    Stream(ctx, storagemodels.WithBufferSize(100))
+
+for result := range resultCh {
+    if result.Error != nil {
+        continue
+    }
+    process(result.Item)
+}
+
+// Time-based queries (New!)
+// Get last 24 hours of activity
+recent, err := store.QueryByTimeRange("user123").
+    InLastHours(24).
+    Latest().
+    Execute(ctx)
+
+// Query this week's data
+weekly, err := store.QueryByTimeRange("metrics").
+    ThisWeek().
+    WithLimit(100).
+    Execute(ctx)
+
+// Stream latest items (newest first)
+for result := range store.StreamLatestItems(ctx, "notifications") {
+    processNotification(result.Item)
+}
+
+// Process in time windows
+iterator := store.QueryTimeWindows("logs", start, end, 24*time.Hour)
+for {
+    dailyLogs, hasMore, err := iterator.Next(ctx)
+    if !hasMore { break }
+    processDailyBatch(dailyLogs)
 }
 ```
 

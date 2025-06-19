@@ -2,6 +2,10 @@
 
 A sophisticated Go library for type-safe, annotation-driven data persistence with support for multiple storage backends.
 
+[![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)](CHANGELOG.md)
+[![Go Version](https://img.shields.io/badge/go-%3E%3D1.21-blue.svg)](go.mod)
+[![License](https://img.shields.io/badge/license-Apache%202.0-green.svg)](LICENSE)
+
 ## Features
 
 - **Type-Safe Operations**: Generic interfaces with compile-time type checking
@@ -61,6 +65,16 @@ if errors.IsNotFound(err) {
     // Handle not found
 }
 
+// Query by GSI (email lookup)
+results, err := store.QueryByGSI1PK(ctx, "user@example.com")
+
+// Complex GSI query
+results, err := store.QueryGSI().
+    WithPartitionKey("user@example.com").
+    WithSortKeyPrefix("STATUS#active").
+    WithLimit(10).
+    Execute(ctx)
+
 // Stream large results
 params := &storagemodels.QueryParams{
     TableName: tableName,
@@ -97,6 +111,12 @@ for result := range store.Stream(ctx, params) {
 - No more type assertions when retrieving datastores
 - Compile-time type checking
 - [Migration Guide](docs/MIGRATION_GUIDE.md) available
+
+### GSI Query Optimization
+- Fluent query builder for GSI queries
+- Convenience methods for common patterns
+- Support for complex filtering and sorting
+- [GSI Optimization Guide](docs/GSI_OPTIMIZATION_GUIDE.md) available
 
 ### Testing Support
 - Comprehensive mock implementation in `datastore/mock`

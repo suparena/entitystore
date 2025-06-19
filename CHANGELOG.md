@@ -7,7 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.1.0] - 2025-06-18
+## [0.2.0] - 2025-01-19
+
+### Added
+- **GSI Query Optimization**: New fluent query builder for Global Secondary Index queries
+  - `GSIQueryBuilder` with methods like `WithPartitionKey()`, `WithSortKey()`, `WithSortKeyPrefix()`
+  - Convenience methods: `QueryByGSI1PK()`, `QueryByGSI1PKAndSKPrefix()`, `QueryByGSI1PKWithFilter()`
+  - Support for sort key ranges with `WithSortKeyBetween()`, `WithSortKeyGreaterThan()`, etc.
+  - Filter expression support with `WithFilter()`
+  - Streaming support for GSI queries
+  - Complete test coverage in `gsi_query_test.go`
+
+- **Time-Based Query Patterns**: Specialized support for time-based queries
+  - `TimeRangeQueryBuilder` for time-based access patterns
+  - Convenience methods: `InLastHours()`, `InLastDays()`, `Today()`, `ThisWeek()`, `ThisMonth()`
+  - Time range queries: `Between()`, `After()`, `Before()`
+  - Sort order control: `Latest()` (newest first) and `Oldest()` (oldest first)
+  - Time window iterator for processing large date ranges in chunks
+  - New convenience methods: `QueryLatestItems()`, `QueryItemsSince()`, `StreamLatestItems()`
+  - Time-based pagination support with `QueryWithTimePagination()`
+
+- **Query Enhancements**
+  - Added `ScanIndexForward` to `QueryParams` for controlling sort order
+  - Updated `Query` and `Stream` implementations to support sort order
+  - Enhanced streaming to respect sort order for time-based queries
+
+### Documentation
+- Added `GSI_OPTIMIZATION_GUIDE.md` with comprehensive GSI query patterns and best practices
+- Added `ADVANCED_QUERY_PATTERNS.md` documenting future query enhancement roadmap
+- Updated quick reference with GSI and time-based query examples
+- Enhanced documentation for time-based access patterns
+- Added time-based query best practices to GSI optimization guide
+
+### Changed
+- Updated `storagemodels.QueryParams` to include `ScanIndexForward` field
+- Enhanced DynamoDB query implementation to support sort order control
+- Improved version management to 0.2.0
+
+## [0.1.0] - 2025-01-18
 
 ### Added
 - Enhanced streaming API with single-channel design

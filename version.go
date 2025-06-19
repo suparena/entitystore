@@ -7,7 +7,7 @@ package entitystore
 // Version information set by build flags
 var (
 	// Version is the semantic version of EntityStore
-	Version = "0.1.0"
+	Version = "0.2.0"
 	
 	// GitCommit is the git commit hash (set by build flags)
 	GitCommit = "unknown"

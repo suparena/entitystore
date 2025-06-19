@@ -33,6 +33,10 @@ type QueryParams struct {
 	Limit *int32
 	// ExclusiveStartKey for pagination
 	ExclusiveStartKey map[string]types.AttributeValue
+	// ScanIndexForward specifies the order for index traversal.
+	// If true (default), traversal is in ascending order.
+	// If false, traversal is in descending order.
+	ScanIndexForward *bool
 }
 
 // StreamQueryParams is deprecated. Use QueryParams instead.

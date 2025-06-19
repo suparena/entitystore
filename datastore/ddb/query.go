@@ -25,6 +25,7 @@ func (d *DynamodbDataStore[T]) Query(ctx context.Context, params *storagemodels.
 		FilterExpression:          params.FilterExpression,
 		IndexName:                 params.IndexName,
 		Limit:                     params.Limit,
+		ScanIndexForward:          params.ScanIndexForward,
 	}
 	out, err := d.client.Query(ctx, input)
 	if err != nil {

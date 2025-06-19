@@ -81,6 +81,7 @@ func (d *DynamodbDataStore[T]) streamWorker(
 		FilterExpression:          params.FilterExpression,
 		IndexName:                 params.IndexName,
 		Limit:                     aws.Int32(options.PageSize),
+		ScanIndexForward:          params.ScanIndexForward,
 	}
 
 	var lastEvaluatedKey map[string]types.AttributeValue
