@@ -2,7 +2,7 @@
 
 A sophisticated Go library for type-safe, annotation-driven data persistence with support for multiple storage backends.
 
-[![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.2.1-blue.svg)](CHANGELOG.md)
 [![Go Version](https://img.shields.io/badge/go-%3E%3D1.21-blue.svg)](go.mod)
 [![License](https://img.shields.io/badge/license-Apache%202.0-green.svg)](LICENSE)
 

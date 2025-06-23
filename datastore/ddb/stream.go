@@ -75,7 +75,7 @@ func (d *DynamodbDataStore[T]) streamWorker(
 
 	// Build query input
 	input := &dynamodb.QueryInput{
-		TableName:                 &params.TableName,
+		TableName:                 &d.tableName,
 		KeyConditionExpression:    &params.KeyConditionExpression,
 		ExpressionAttributeValues: params.ExpressionAttributeValues,
 		FilterExpression:          params.FilterExpression,

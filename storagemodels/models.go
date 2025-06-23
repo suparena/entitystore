@@ -20,6 +20,7 @@ type StreamItem struct {
 // Used for both regular queries and streaming queries.
 type QueryParams struct {
 	// TableName is the DynamoDB table name.
+	// Deprecated: This field is no longer used. The table name is taken from the DataStore instance.
 	TableName string
 	// KeyConditionExpression is the primary condition for the query.
 	KeyConditionExpression string

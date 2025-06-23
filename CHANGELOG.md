@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2025-01-19
+
+### Fixed
+- **Critical Bug Fix**: Query method now correctly uses the datastore's table name instead of the one from QueryParams
+  - Fixed issue where GSI queries would fail with "ValidationException: Value '' at 'tableName' failed to satisfy constraint"
+  - Both `Query` and `Stream` methods now properly use `d.tableName` from the datastore instance
+  - Added deprecation notice to `QueryParams.TableName` field as it's no longer used
+  - Added test coverage for the bug fix
+
+### Changed
+- Deprecated `QueryParams.TableName` field - the table name is now always taken from the DataStore instance
+
 ## [0.2.0] - 2025-01-19
 
 ### Added

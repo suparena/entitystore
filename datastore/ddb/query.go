@@ -19,7 +19,7 @@ import (
 // unmarshal function from the type registry so that each item is unmarshaled to its proper type.
 func (d *DynamodbDataStore[T]) Query(ctx context.Context, params *storagemodels.QueryParams) ([]interface{}, error) {
 	input := &dynamodb.QueryInput{
-		TableName:                 &params.TableName,
+		TableName:                 &d.tableName,
 		KeyConditionExpression:    &params.KeyConditionExpression,
 		ExpressionAttributeValues: params.ExpressionAttributeValues,
 		FilterExpression:          params.FilterExpression,
