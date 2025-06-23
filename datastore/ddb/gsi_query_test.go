@@ -63,7 +63,7 @@ func TestGSIQueryBuilder(t *testing.T) {
 		}
 		
 		// Check key condition
-		expectedKey := "GSI1PK = :pk"
+		expectedKey := "PK1 = :pk"
 		if params.KeyConditionExpression != expectedKey {
 			t.Errorf("Expected key condition %s, got %s", expectedKey, params.KeyConditionExpression)
 		}
@@ -90,7 +90,7 @@ func TestGSIQueryBuilder(t *testing.T) {
 		}
 		
 		// Check key condition includes sort key
-		expectedKey := "GSI1PK = :pk AND GSI1SK = :sk"
+		expectedKey := "PK1 = :pk AND SK1 = :sk"
 		if params.KeyConditionExpression != expectedKey {
 			t.Errorf("Expected key condition %s, got %s", expectedKey, params.KeyConditionExpression)
 		}
@@ -117,7 +117,7 @@ func TestGSIQueryBuilder(t *testing.T) {
 		}
 		
 		// Check key condition uses begins_with
-		expectedKey := "GSI1PK = :pk AND begins_with(GSI1SK, :sk)"
+		expectedKey := "PK1 = :pk AND begins_with(SK1, :sk)"
 		if params.KeyConditionExpression != expectedKey {
 			t.Errorf("Expected key condition %s, got %s", expectedKey, params.KeyConditionExpression)
 		}
@@ -173,7 +173,7 @@ func TestGSIQueryBuilder(t *testing.T) {
 		}
 		
 		// Check key condition uses BETWEEN
-		expectedKey := "GSI1PK = :pk AND GSI1SK BETWEEN :sk AND :sk2"
+		expectedKey := "PK1 = :pk AND SK1 BETWEEN :sk AND :sk2"
 		if params.KeyConditionExpression != expectedKey {
 			t.Errorf("Expected key condition %s, got %s", expectedKey, params.KeyConditionExpression)
 		}

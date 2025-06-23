@@ -104,14 +104,20 @@ func (q *GSIQueryBuilder[T]) Build() (*storagemodels.QueryParams, error) {
 		return nil, fmt.Errorf("GSI partition key value is required")
 	}
 	
+	// Get GSI configuration
+	gsiConfig, ok := GetGSIConfig(q.indexName)
+	if !ok {
+		return nil, fmt.Errorf("GSI configuration not found for index %s", q.indexName)
+	}
+	
 	// Get index map to build the actual key values
 	indexMap, ok := registry.GetIndexMap[T]()
 	if !ok {
 		return nil, fmt.Errorf("no index map found for type %T", *new(T))
 	}
 	
-	// Build key condition expression
-	keyConditions := []string{"GSI1PK = :pk"}
+	// Build key condition expression using actual GSI key names
+	keyConditions := []string{gsiConfig.PartitionKeyName + " = :pk"}
 	
 	// Expand the partition key using the index map pattern
 	gsi1PKPattern, ok := indexMap["GSI1PK"]
@@ -150,25 +156,25 @@ func (q *GSIQueryBuilder[T]) Build() (*storagemodels.QueryParams, error) {
 			
 			switch q.skOperator {
 			case "=":
-				keyConditions = append(keyConditions, "GSI1SK = :sk")
+				keyConditions = append(keyConditions, gsiConfig.SortKeyName + " = :sk")
 				q.params.ExpressionAttributeValues[":sk"] = &types.AttributeValueMemberS{Value: expandedSK}
 			case "begins_with":
-				keyConditions = append(keyConditions, "begins_with(GSI1SK, :sk)")
+				keyConditions = append(keyConditions, "begins_with(" + gsiConfig.SortKeyName + ", :sk)")
 				q.params.ExpressionAttributeValues[":sk"] = &types.AttributeValueMemberS{Value: expandedSK}
 			case ">":
-				keyConditions = append(keyConditions, "GSI1SK > :sk")
+				keyConditions = append(keyConditions, gsiConfig.SortKeyName + " > :sk")
 				q.params.ExpressionAttributeValues[":sk"] = &types.AttributeValueMemberS{Value: expandedSK}
 			case "<":
-				keyConditions = append(keyConditions, "GSI1SK < :sk")
+				keyConditions = append(keyConditions, gsiConfig.SortKeyName + " < :sk")
 				q.params.ExpressionAttributeValues[":sk"] = &types.AttributeValueMemberS{Value: expandedSK}
 			case ">=":
-				keyConditions = append(keyConditions, "GSI1SK >= :sk")
+				keyConditions = append(keyConditions, gsiConfig.SortKeyName + " >= :sk")
 				q.params.ExpressionAttributeValues[":sk"] = &types.AttributeValueMemberS{Value: expandedSK}
 			case "<=":
-				keyConditions = append(keyConditions, "GSI1SK <= :sk")
+				keyConditions = append(keyConditions, gsiConfig.SortKeyName + " <= :sk")
 				q.params.ExpressionAttributeValues[":sk"] = &types.AttributeValueMemberS{Value: expandedSK}
 			case "BETWEEN":
-				keyConditions = append(keyConditions, "GSI1SK BETWEEN :sk AND :sk2")
+				keyConditions = append(keyConditions, gsiConfig.SortKeyName + " BETWEEN :sk AND :sk2")
 				q.params.ExpressionAttributeValues[":sk"] = &types.AttributeValueMemberS{Value: expandedSK}
 				// :sk2 should already be set in WithSortKeyBetween
 			}

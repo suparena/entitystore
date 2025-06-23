@@ -236,7 +236,35 @@ func (d *DynamodbDataStore[T]) Put(ctx context.Context, entity T) error {
 
 	// Insert the expanded fields as PK, SK, etc.
 	for k, v := range expanded {
-		av[k] = &types.AttributeValueMemberS{Value: v}
+		// Map logical GSI names to physical names
+		physicalKey := k
+		switch k {
+		case "GSI1PK":
+			if gsiConfig, ok := GetGSIConfig("GSI1"); ok {
+				physicalKey = gsiConfig.PartitionKeyName
+			}
+		case "GSI1SK":
+			if gsiConfig, ok := GetGSIConfig("GSI1"); ok {
+				physicalKey = gsiConfig.SortKeyName
+			}
+		case "GSI2PK":
+			if gsiConfig, ok := GetGSIConfig("GSI2"); ok {
+				physicalKey = gsiConfig.PartitionKeyName
+			}
+		case "GSI2SK":
+			if gsiConfig, ok := GetGSIConfig("GSI2"); ok {
+				physicalKey = gsiConfig.SortKeyName
+			}
+		case "GSI3PK":
+			if gsiConfig, ok := GetGSIConfig("GSI3"); ok {
+				physicalKey = gsiConfig.PartitionKeyName
+			}
+		case "GSI3SK":
+			if gsiConfig, ok := GetGSIConfig("GSI3"); ok {
+				physicalKey = gsiConfig.SortKeyName
+			}
+		}
+		av[physicalKey] = &types.AttributeValueMemberS{Value: v}
 	}
 
 	_, err = d.client.PutItem(ctx, &sdk.PutItemInput{

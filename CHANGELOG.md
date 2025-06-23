@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.2] - 2025-01-19
+
+### Added
+- **GSI Key Mapping**: Automatic mapping between logical GSI names (GSI1PK/GSI1SK) and physical DynamoDB attributes (PK1/SK1)
+  - Added `GSIConfig` to handle GSI key name mappings
+  - Put method now correctly maps GSI keys when storing items
+  - Query builder uses correct physical key names in queries
+- **Just Build System**: Added Justfile for streamlined development workflow
+  - Common tasks like build, test, setup, and release
+  - DynamoDB table setup and verification commands
+- **Setup Documentation**: Comprehensive setup and prerequisites guides
+  - `PREREQUISITES.md`: System requirements and AWS setup
+  - `SETUP_GUIDE.md`: Step-by-step setup instructions
+  - Shell scripts for DynamoDB table setup and verification
+- **DynamoDB Setup Scripts**:
+  - `setup-dynamodb-table.sh`: Creates properly configured DynamoDB table
+  - `verify-dynamodb-setup.sh`: Verifies table structure and permissions
+
+### Fixed
+- GSI queries now use correct physical key names (PK1/SK1) instead of logical names
+- Updated tests to reflect correct GSI key names
+
 ## [0.2.1] - 2025-01-19
 
 ### Fixed

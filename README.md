@@ -2,7 +2,7 @@
 
 A sophisticated Go library for type-safe, annotation-driven data persistence with support for multiple storage backends.
 
-[![Version](https://img.shields.io/badge/version-0.2.1-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.2.2-blue.svg)](CHANGELOG.md)
 [![Go Version](https://img.shields.io/badge/go-%3E%3D1.21-blue.svg)](go.mod)
 [![License](https://img.shields.io/badge/license-Apache%202.0-green.svg)](LICENSE)
 
@@ -19,8 +19,31 @@ A sophisticated Go library for type-safe, annotation-driven data persistence wit
 ## Installation
 
 ```bash
-go get github.com/suparena/entitystore
+go get github.com/suparena/entitystore@latest
 ```
+
+## Prerequisites
+
+See [Prerequisites Guide](docs/PREREQUISITES.md) for detailed requirements.
+
+### Quick Setup with Just
+
+```bash
+# Install Just (command runner)
+brew install just  # macOS
+# or see https://github.com/casey/just#installation
+
+# Setup development environment
+just setup
+
+# Setup DynamoDB table
+just setup-dynamodb my-table
+
+# Verify setup
+just verify-dynamodb my-table
+```
+
+For detailed setup instructions, see the [Setup Guide](docs/SETUP_GUIDE.md).
 
 ## Quick Start
 
@@ -41,11 +64,13 @@ type User struct {
 User:
   type: object
   x-dynamodb-indexmap:
-    PK: "USER#{ID}"
-    SK: "USER#{ID}"
-    GSI1PK: "EMAIL#{Email}"
-    GSI1SK: "USER"
+    PK: "USER#{ID}"        # Maps to DynamoDB attribute 'PK'
+    SK: "USER#{ID}"        # Maps to DynamoDB attribute 'SK'
+    GSI1PK: "EMAIL#{Email}" # Maps to DynamoDB attribute 'PK1' (GSI1 partition key)
+    GSI1SK: "USER"         # Maps to DynamoDB attribute 'SK1' (GSI1 sort key)
 ```
+
+**Note**: EntityStore automatically maps logical GSI names (GSI1PK/GSI1SK) to physical DynamoDB attribute names (PK1/SK1).
 
 ### 3. Use the DataStore
 
