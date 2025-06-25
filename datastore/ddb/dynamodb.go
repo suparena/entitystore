@@ -170,6 +170,41 @@ func (d *DynamodbDataStore[T]) GetOne(ctx context.Context, key string) (*T, erro
 	return result, nil
 }
 
+// GetByKey retrieves a single item from DynamoDB using explicit PK and SK values.
+// This is useful for composite keys where GetOne cannot construct the key from a single ID.
+func (d *DynamodbDataStore[T]) GetByKey(ctx context.Context, pk, sk string) (*T, error) {
+	// Build the DynamoDB key directly from PK and SK
+	keyMap := map[string]types.AttributeValue{
+		"pk": &types.AttributeValueMemberS{Value: pk},
+		"sk": &types.AttributeValueMemberS{Value: sk},
+	}
+
+	// Perform the GetItem call
+	out, err := d.client.GetItem(ctx, &sdk.GetItemInput{
+		TableName: &d.tableName,
+		Key:       keyMap,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("GetByKey error: %w", err)
+	}
+	if out.Item == nil {
+		// Not found: return error
+		var t T
+		typeName := reflect.TypeOf(t).Name()
+		return nil, eserrors.NewNotFoundError(typeName, fmt.Sprintf("%s|%s", pk, sk))
+	}
+
+	// Remove the EntityType attribute
+	delete(out.Item, "EntityType")
+
+	// Create a new instance of T and unmarshal the item into it
+	result := new(T)
+	if err := attributevalue.UnmarshalMap(out.Item, result); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal item: %w", err)
+	}
+	return result, nil
+}
+
 // queryOne is a helper used by GetOne() when we don't have a full PK+SK to do GetItem.
 // We can do a small Query. If you store PK1, SK1, etc. for a GSI, you can detect that
 // here and set up QueryInput accordingly.

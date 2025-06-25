@@ -82,6 +82,13 @@ func (m *DataStore[T]) GetOne(ctx context.Context, key string) (*T, error) {
 	return nil, errors.NewNotFoundError(fmt.Sprintf("%T", zero), key)
 }
 
+// GetByKey retrieves an entity by explicit PK and SK values
+func (m *DataStore[T]) GetByKey(ctx context.Context, pk, sk string) (*T, error) {
+	// For mock, we'll use the composite key format
+	key := fmt.Sprintf("%s|%s", pk, sk)
+	return m.GetOne(ctx, key)
+}
+
 // Put stores an entity
 func (m *DataStore[T]) Put(ctx context.Context, entity T) error {
 	if m.putError != nil {

@@ -11,6 +11,10 @@ import (
 
 type DataStore[T any] interface {
 	GetOne(ctx context.Context, key string) (*T, error)
+	
+	// GetByKey retrieves an entity by providing exact PK and SK values
+	// This is useful for composite keys where GetOne cannot construct the key from a single ID
+	GetByKey(ctx context.Context, pk, sk string) (*T, error)
 
 	Put(ctx context.Context, entity T) error
 
