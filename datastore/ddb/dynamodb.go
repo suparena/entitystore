@@ -174,9 +174,10 @@ func (d *DynamodbDataStore[T]) GetOne(ctx context.Context, key string) (*T, erro
 // This is useful for composite keys where GetOne cannot construct the key from a single ID.
 func (d *DynamodbDataStore[T]) GetByKey(ctx context.Context, pk, sk string) (*T, error) {
 	// Build the DynamoDB key directly from PK and SK
+	// Note: DynamoDB key attributes are case-sensitive - use uppercase PK/SK
 	keyMap := map[string]types.AttributeValue{
-		"pk": &types.AttributeValueMemberS{Value: pk},
-		"sk": &types.AttributeValueMemberS{Value: sk},
+		"PK": &types.AttributeValueMemberS{Value: pk},
+		"SK": &types.AttributeValueMemberS{Value: sk},
 	}
 
 	// Perform the GetItem call
