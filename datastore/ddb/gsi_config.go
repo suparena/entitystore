@@ -21,16 +21,6 @@ var DefaultGSIConfigs = map[string]GSIConfig{
 		PartitionKeyName: "PK1",
 		SortKeyName:      "SK1",
 	},
-	"GSI2": {
-		IndexName:        "GSI2",
-		PartitionKeyName: "PK2",
-		SortKeyName:      "SK2",
-	},
-	"GSI3": {
-		IndexName:        "GSI3",
-		PartitionKeyName: "PK3",
-		SortKeyName:      "SK3",
-	},
 }
 
 // GetGSIConfig returns the GSI configuration for a given index name

@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.5] - 2025-01-25
+
+### Changed
+- **Simplified GSI Configuration**: Removed GSI2 and GSI3 configurations to match production setup
+  - Now only supports single GSI (GSI1) with physical keys PK1 and SK1
+  - Reduces operational costs by maintaining only one GSI
+  - Aligns with production table schema
+
+### Updated
+- **DynamoDB Setup Scripts**: Enhanced to support pay-per-request billing mode
+  - Pay-per-request is now the default billing mode
+  - Scripts support both pay-per-request and provisioned modes
+  - Added production table example in setup documentation
+
+### Documentation
+- Updated setup guides to reflect single GSI configuration
+- Added production table example with pay-per-request billing
+- Clarified that only GSI1 is supported with PK1/SK1 physical keys
+- Enhanced setup script documentation with billing mode options
+
 ## [0.2.2] - 2025-01-19
 
 ### Added

@@ -23,15 +23,13 @@ Table Name: your-table-name
 Partition Key: PK (String)
 Sort Key: SK (String)
 
-Global Secondary Index 1 (GSI1):
+Global Secondary Index (GSI1):
   Name: GSI1
   Partition Key: PK1 (String)
   Sort Key: SK1 (String)
   Projection: ALL
 
-Optional GSIs:
-GSI2: PK2/SK2
-GSI3: PK3/SK3
+Billing Mode: PAY_PER_REQUEST (recommended) or PROVISIONED
 ```
 
 ## Installation
@@ -66,10 +64,10 @@ Save this script as `setup-dynamodb-table.sh`:
 # Configuration
 TABLE_NAME="${1:-entitystore-table}"
 REGION="${AWS_REGION:-us-east-1}"
-READ_CAPACITY="${READ_CAPACITY:-5}"
-WRITE_CAPACITY="${WRITE_CAPACITY:-5}"
+BILLING_MODE="${BILLING_MODE:-PAY_PER_REQUEST}"  # PAY_PER_REQUEST or PROVISIONED
 
 echo "Setting up DynamoDB table: $TABLE_NAME in region: $REGION"
+echo "Billing mode: $BILLING_MODE"
 
 # Check if table exists
 if aws dynamodb describe-table --table-name "$TABLE_NAME" --region "$REGION" 2>/dev/null; then
@@ -78,34 +76,64 @@ if aws dynamodb describe-table --table-name "$TABLE_NAME" --region "$REGION" 2>/
 fi
 
 # Create table with GSI1
-aws dynamodb create-table \
-    --table-name "$TABLE_NAME" \
-    --attribute-definitions \
-        AttributeName=PK,AttributeType=S \
-        AttributeName=SK,AttributeType=S \
-        AttributeName=PK1,AttributeType=S \
-        AttributeName=SK1,AttributeType=S \
-    --key-schema \
-        AttributeName=PK,KeyType=HASH \
-        AttributeName=SK,KeyType=RANGE \
-    --global-secondary-indexes \
-        "[
-            {
-                \"IndexName\": \"GSI1\",
-                \"Keys\": [
-                    {\"AttributeName\":\"PK1\",\"KeyType\":\"HASH\"},
-                    {\"AttributeName\":\"SK1\",\"KeyType\":\"RANGE\"}
-                ],
-                \"Projection\": {\"ProjectionType\":\"ALL\"},
-                \"ProvisionedThroughput\": {
-                    \"ReadCapacityUnits\": $READ_CAPACITY,
-                    \"WriteCapacityUnits\": $WRITE_CAPACITY
+if [ "$BILLING_MODE" = "PAY_PER_REQUEST" ]; then
+    aws dynamodb create-table \
+        --table-name "$TABLE_NAME" \
+        --attribute-definitions \
+            AttributeName=PK,AttributeType=S \
+            AttributeName=SK,AttributeType=S \
+            AttributeName=PK1,AttributeType=S \
+            AttributeName=SK1,AttributeType=S \
+        --key-schema \
+            AttributeName=PK,KeyType=HASH \
+            AttributeName=SK,KeyType=RANGE \
+        --global-secondary-indexes \
+            "[
+                {
+                    \"IndexName\": \"GSI1\",
+                    \"Keys\": [
+                        {\"AttributeName\":\"PK1\",\"KeyType\":\"HASH\"},
+                        {\"AttributeName\":\"SK1\",\"KeyType\":\"RANGE\"}
+                    ],
+                    \"Projection\": {\"ProjectionType\":\"ALL\"}
                 }
-            }
-        ]" \
-    --provisioned-throughput \
-        ReadCapacityUnits=$READ_CAPACITY,WriteCapacityUnits=$WRITE_CAPACITY \
-    --region "$REGION"
+            ]" \
+        --billing-mode PAY_PER_REQUEST \
+        --region "$REGION"
+else
+    # Provisioned mode (for development/testing)
+    READ_CAPACITY="${READ_CAPACITY:-5}"
+    WRITE_CAPACITY="${WRITE_CAPACITY:-5}"
+    
+    aws dynamodb create-table \
+        --table-name "$TABLE_NAME" \
+        --attribute-definitions \
+            AttributeName=PK,AttributeType=S \
+            AttributeName=SK,AttributeType=S \
+            AttributeName=PK1,AttributeType=S \
+            AttributeName=SK1,AttributeType=S \
+        --key-schema \
+            AttributeName=PK,KeyType=HASH \
+            AttributeName=SK,KeyType=RANGE \
+        --global-secondary-indexes \
+            "[
+                {
+                    \"IndexName\": \"GSI1\",
+                    \"Keys\": [
+                        {\"AttributeName\":\"PK1\",\"KeyType\":\"HASH\"},
+                        {\"AttributeName\":\"SK1\",\"KeyType\":\"RANGE\"}
+                    ],
+                    \"Projection\": {\"ProjectionType\":\"ALL\"},
+                    \"ProvisionedThroughput\": {
+                        \"ReadCapacityUnits\": $READ_CAPACITY,
+                        \"WriteCapacityUnits\": $WRITE_CAPACITY
+                    }
+                }
+            ]" \
+        --provisioned-throughput \
+            ReadCapacityUnits=$READ_CAPACITY,WriteCapacityUnits=$WRITE_CAPACITY \
+        --region "$REGION"
+fi
 
 echo "Waiting for table to be active..."
 aws dynamodb wait table-exists --table-name "$TABLE_NAME" --region "$REGION"
@@ -255,6 +283,41 @@ fi
 
 echo -e "\n================================================"
 echo "Verification complete!"
+```
+
+## Production Table Example
+
+For production deployments, here's an example configuration matching the Suparena production setup:
+
+```bash
+# Create production table with pay-per-request billing
+export AWS_REGION=ca-central-1  # or your preferred region
+./scripts/setup-dynamodb-table.sh suparena
+
+# Or manually:
+aws dynamodb create-table \
+    --table-name suparena \
+    --attribute-definitions \
+        AttributeName=PK,AttributeType=S \
+        AttributeName=SK,AttributeType=S \
+        AttributeName=PK1,AttributeType=S \
+        AttributeName=SK1,AttributeType=S \
+    --key-schema \
+        AttributeName=PK,KeyType=HASH \
+        AttributeName=SK,KeyType=RANGE \
+    --global-secondary-indexes \
+        "[
+            {
+                \"IndexName\": \"GSI1\",
+                \"Keys\": [
+                    {\"AttributeName\":\"PK1\",\"KeyType\":\"HASH\"},
+                    {\"AttributeName\":\"SK1\",\"KeyType\":\"RANGE\"}
+                ],
+                \"Projection\": {\"ProjectionType\":\"ALL\"}
+            }
+        ]" \
+    --billing-mode PAY_PER_REQUEST \
+    --region ca-central-1
 ```
 
 ## Just Build System

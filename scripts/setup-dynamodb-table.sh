@@ -8,6 +8,7 @@ set -e
 # Configuration
 TABLE_NAME="${1:-entitystore-table}"
 REGION="${AWS_REGION:-us-east-1}"
+BILLING_MODE="${BILLING_MODE:-PAY_PER_REQUEST}"  # PAY_PER_REQUEST or PROVISIONED
 READ_CAPACITY="${READ_CAPACITY:-5}"
 WRITE_CAPACITY="${WRITE_CAPACITY:-5}"
 
@@ -21,8 +22,11 @@ echo -e "${GREEN}EntityStore DynamoDB Table Setup${NC}"
 echo "=================================="
 echo "Table Name: $TABLE_NAME"
 echo "Region: $REGION"
-echo "Read Capacity: $READ_CAPACITY"
-echo "Write Capacity: $WRITE_CAPACITY"
+echo "Billing Mode: $BILLING_MODE"
+if [ "$BILLING_MODE" = "PROVISIONED" ]; then
+    echo "Read Capacity: $READ_CAPACITY"
+    echo "Write Capacity: $WRITE_CAPACITY"
+fi
 echo ""
 
 # Check AWS CLI is installed
@@ -63,35 +67,66 @@ else
     
     # Create table
     echo -e "\nCreating table..."
-    aws dynamodb create-table \
-        --table-name "$TABLE_NAME" \
-        --attribute-definitions \
-            AttributeName=PK,AttributeType=S \
-            AttributeName=SK,AttributeType=S \
-            AttributeName=PK1,AttributeType=S \
-            AttributeName=SK1,AttributeType=S \
-        --key-schema \
-            AttributeName=PK,KeyType=HASH \
-            AttributeName=SK,KeyType=RANGE \
-        --global-secondary-indexes \
-            "[
-                {
-                    \"IndexName\": \"GSI1\",
-                    \"Keys\": [
-                        {\"AttributeName\":\"PK1\",\"KeyType\":\"HASH\"},
-                        {\"AttributeName\":\"SK1\",\"KeyType\":\"RANGE\"}
-                    ],
-                    \"Projection\": {\"ProjectionType\":\"ALL\"},
-                    \"ProvisionedThroughput\": {
-                        \"ReadCapacityUnits\": $READ_CAPACITY,
-                        \"WriteCapacityUnits\": $WRITE_CAPACITY
-                    }
+    
+    # Build GSI configuration based on billing mode
+    if [ "$BILLING_MODE" = "PAY_PER_REQUEST" ]; then
+        GSI_CONFIG='[
+            {
+                "IndexName": "GSI1",
+                "Keys": [
+                    {"AttributeName":"PK1","KeyType":"HASH"},
+                    {"AttributeName":"SK1","KeyType":"RANGE"}
+                ],
+                "Projection": {"ProjectionType":"ALL"}
+            }
+        ]'
+        
+        aws dynamodb create-table \
+            --table-name "$TABLE_NAME" \
+            --attribute-definitions \
+                AttributeName=PK,AttributeType=S \
+                AttributeName=SK,AttributeType=S \
+                AttributeName=PK1,AttributeType=S \
+                AttributeName=SK1,AttributeType=S \
+            --key-schema \
+                AttributeName=PK,KeyType=HASH \
+                AttributeName=SK,KeyType=RANGE \
+            --global-secondary-indexes "$GSI_CONFIG" \
+            --billing-mode PAY_PER_REQUEST \
+            --region "$REGION" \
+            --output json > /dev/null
+    else
+        GSI_CONFIG="[
+            {
+                \"IndexName\": \"GSI1\",
+                \"Keys\": [
+                    {\"AttributeName\":\"PK1\",\"KeyType\":\"HASH\"},
+                    {\"AttributeName\":\"SK1\",\"KeyType\":\"RANGE\"}
+                ],
+                \"Projection\": {\"ProjectionType\":\"ALL\"},
+                \"ProvisionedThroughput\": {
+                    \"ReadCapacityUnits\": $READ_CAPACITY,
+                    \"WriteCapacityUnits\": $WRITE_CAPACITY
                 }
-            ]" \
-        --provisioned-throughput \
-            ReadCapacityUnits=$READ_CAPACITY,WriteCapacityUnits=$WRITE_CAPACITY \
-        --region "$REGION" \
-        --output json > /dev/null
+            }
+        ]"
+        
+        aws dynamodb create-table \
+            --table-name "$TABLE_NAME" \
+            --attribute-definitions \
+                AttributeName=PK,AttributeType=S \
+                AttributeName=SK,AttributeType=S \
+                AttributeName=PK1,AttributeType=S \
+                AttributeName=SK1,AttributeType=S \
+            --key-schema \
+                AttributeName=PK,KeyType=HASH \
+                AttributeName=SK,KeyType=RANGE \
+            --global-secondary-indexes "$GSI_CONFIG" \
+            --provisioned-throughput \
+                ReadCapacityUnits=$READ_CAPACITY,WriteCapacityUnits=$WRITE_CAPACITY \
+            --region "$REGION" \
+            --output json > /dev/null
+    fi
 
     echo -e "${GREEN}Table creation initiated${NC}"
     
